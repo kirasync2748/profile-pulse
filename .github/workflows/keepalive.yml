@@ -1,0 +1,36 @@
+name: Upstash Keep-Alive
+
+on:
+  # Run every 24 hours at midnight UTC
+  schedule:
+    - cron: "0 0 * * *"
+
+  # Allow manual trigger from the GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping Upstash Redis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send PING to Upstash Redis
+        run: |
+          echo "Pinging Upstash Redis to keep it alive..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            "${{ secrets.UPSTASH_REDIS_REST_URL }}/PING" \
+            -H "Authorization: Bearer ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "ERROR: Upstash ping failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+          echo "Upstash Redis is alive and responding."

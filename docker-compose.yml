@@ -1,0 +1,41 @@
+# Production-oriented Docker Compose for self-hosting ProfilePulse.
+#
+# Runs the app (built from Dockerfile) alongside a local Redis instance.
+# For Vercel + Upstash deployment see the README.
+#
+# Usage:
+#   docker compose up -d --build
+#   curl http://localhost:3000/health
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - ADDR=:3000
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  redis-data:

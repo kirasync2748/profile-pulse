@@ -1,0 +1,28 @@
+# Environment / secrets — never commit real values.
+.env
+.env.local
+.env.*.local
+
+# Go build artifacts.
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/bin/
+/dist/
+
+# Editor / OS files.
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Vercel.
+.vercel/
+
+# Air live-reload tmp output.
+/tmp/
