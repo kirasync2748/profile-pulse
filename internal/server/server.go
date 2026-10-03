@@ -10,6 +10,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -70,8 +71,14 @@ func setSVGHeaders(w http.ResponseWriter) {
 	h := w.Header()
 	h.Set("Content-Type", "image/svg+xml; charset=utf-8")
 	h.Set("X-Content-Type-Options", "nosniff")
-	h.Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	// GitHub's camo image proxy caches aggressively; these headers force it
+	// (and Vercel's CDN) to refetch the badge on every profile view.
+	h.Set("Cache-Control", "max-age=0, no-cache, no-store, must-revalidate, private")
+	h.Set("CDN-Cache-Control", "no-store")
+	h.Set("Vercel-CDN-Cache-Control", "no-store")
 	h.Set("Pragma", "no-cache")
+	h.Set("Expires", "Thu, 01 Jan 1970 00:00:00 GMT")
+	h.Set("ETag", fmt.Sprintf("\"%d\"", time.Now().UnixNano()))
 	h.Set("Access-Control-Allow-Origin", "*")
 }
 
